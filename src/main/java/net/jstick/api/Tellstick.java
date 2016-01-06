@@ -18,7 +18,7 @@ import com.sun.jna.Pointer;
 
 
 public class Tellstick {
-	private static String version = "1.6";
+	private static String version = "1.7";
 	static Log log = LogFactory.getLog(Tellstick.class.getName());
 	boolean debug = false;
 
@@ -598,24 +598,22 @@ public class Tellstick {
 				 
 			 } else if(dt[0] == 3){
 				 byte[] value = new byte[10];
+				 byte[] value2 = new byte[10];
 				 int[] time = new int[1];
 				 double temp = -99;
 				 int hum = -99;
 				 if (TellstickLibrary.INSTANCE.tdSensorValue(Native.toString(pro), Native.toString(mod), sid[0], TellstickLibrary.TELLSTICK_TEMPERATURE, value, 10, time) == TellstickLibrary.TELLSTICK_SUCCESS){
 					 temp = Double.parseDouble(Native.toString(value));
-					 value = null;
 				 }
 					
-				 if (TellstickLibrary.INSTANCE.tdSensorValue(Native.toString(pro), Native.toString(mod), sid[0], TellstickLibrary.TELLSTICK_HUMIDITY, value, 10, time) == TellstickLibrary.TELLSTICK_SUCCESS){
-					 // Correct for mandolyn bug
-					 if(value == null){
-						 hum = 0;
-					 } else {
-						 hum = Integer.parseInt(Native.toString(value));
-					 }
-					 value=null;
+				 if (TellstickLibrary.INSTANCE.tdSensorValue(Native.toString(pro), Native.toString(mod), sid[0], TellstickLibrary.TELLSTICK_HUMIDITY, value2, 10, time) == TellstickLibrary.TELLSTICK_SUCCESS){
+						 hum = Integer.parseInt(Native.toString(value2));				 
 				 }
-				 
+				 // Fix mandolyn bug reporting 0% humidity
+				 if( hum == 0){
+					 hum = -99;
+					 dt[0] = 1;
+				 }
 				 Sensor sens = new Sensor(Native.toString(mod),Native.toString(pro),sid[0],dt[0],temp,hum,time[0]);
 				 sensors.add(sens);
 
@@ -627,7 +625,7 @@ public class Tellstick {
 					
 				 if (TellstickLibrary.INSTANCE.tdSensorValue(Native.toString(pro), Native.toString(mod), sid[0], TellstickLibrary.TELLSTICK_HUMIDITY, value, 10, time) == TellstickLibrary.TELLSTICK_SUCCESS){
 					 hum = Integer.parseInt(Native.toString(value));
-					 value=null;
+					 //value=null;
 				 }
 				 
 				 Sensor sens = new Sensor(Native.toString(mod),Native.toString(pro),sid[0],dt[0],temp,hum,time[0]);
